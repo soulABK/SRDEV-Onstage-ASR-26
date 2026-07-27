@@ -1,5 +1,6 @@
-//NOTE: USE SERIAL MONITOR TO TRACK CONNECTION PROGRESS
-//NOTE: FOR TRIALS IN VOID LOOP(), STRINGS MUST END IN '\n' CHARACTER
+//COMMUNICATION TEST - SEND STRING FROM JETSON TO PICOW AND TRACK OVERALL TIME TO SEND AND RECEIVE
+//NOTE: USE SERIAL MONITOR TO TRACK STEP-BY-STEP CONNECTION PROGRESS
+//NOTE: STRINGS SENT TO THE PICOW MUST END IN '\n' CHARACTER 
 
 //libraries
 #include <iostream>
@@ -65,7 +66,7 @@ void setup() {
   //begin PicoW as server (data sender)
   server.begin();
   //begin PicoW as client (data receiver)
-  client = server.accept();
+  client = server.available();
   if (client) {
     Serial.printf("Connected to server at %s:%d\n", WiFi.localIP().toString().c_str(), PORT);
   }
@@ -79,14 +80,14 @@ void setup() {
 //function: readServerData, read characters from server and store in inputBuffer
 int readServerData(WiFiClient &client) {
   if (client.connected()) {
-    char c = client.read();
-    inputBuffer += c;
-    if (c == '\n') {
-      return 1; //return 1 if a character is successfully read and the full string has been completed (line break)
+    if (client.available()) {
+      char c = client.read();
+      inputBuffer += c;
+      if (c == '\n') {
+        return 1; //return 1 if client is connected and line break character is read
+      }
     }
-    else {
-      return 0; //return 0 if a character is successfully read but the full string has not been completed (no line break)
-    }
+    return 0; //return 0 if client is connected but line break character has not been read / no character has been read
   }
   else {
     return -1; //return -1 if client is disconnected
@@ -94,24 +95,21 @@ int readServerData(WiFiClient &client) {
 }
 
 void loop() {
-  //run 3 trials of reading strings
-  for (int i = 0; i < 3; i++) {
-    Serial.printf("Starting Trial %d\n", i + 1);
-    auto start = std::chrono::high_resolution_clock::now();
+  while (client.connected()) {
     int err = 0;
     while(err == 0) {
       err = readServerData(client);
     }
-    auto end = std::chrono::high_resolution_clock::now();
     if (err == -1) {
       Serial.printf("Failed to read string due to disconnection from server, terminating program...\n");  
-      exit(1);
+      break;
     }
     if (err == 1) {
-      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-      Serial.printf("Successfully read %d bytes of string '%s', time elapsed: %lld ms\n", inputBuffer.length(), inputBuffer, duration.count());  
+      Serial.printf("Successfully read %d bytes of string '%s'", inputBuffer.length(), inputBuffer);  
+      client.println(inputBuffer);
       inputBuffer = "";
     }
   }
+  client.stop();
   exit(0);
 }
