@@ -1,10 +1,13 @@
 <h1>SR DEV RoboCupJunior Onstage ASR 2026 Repository</h1>
 
 <h3>Description</h3>
-<h6>Hello World</h6>
+<p>Team SR DEV's GitHub repository, contains code produced for the RoboCupJunior Onstage Americas SuperRegional competition.<br>See here for repository used for RCJ Onstage International competition: https://github.com/VedaangV/OnStage-25-26/tree/master<br>Code is written in Python (Thonny) and C++ (Arduino IDE)</p>
 
 <h3>File Structure</h3>
-<h6>List of directories and code files, along with an explanation of each one's function</h6>
+<p>List of directories and code files, along with an explanation of each one's function</p>
+
+<h6>Note (7/27): File structure in README is the old version, will need to be updated in the future</h6>
+
 <ol>
   <li>central</li>
     <ul>
