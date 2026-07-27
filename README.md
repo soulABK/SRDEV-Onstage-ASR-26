@@ -1,6 +1,10 @@
 <h1>SR DEV RoboCupJunior Onstage ASR 2026 Repository</h1>
 
-<h6>Directory Structure</h6>
+<h3>Description</h3>
+<h6>Hello World</h6>
+
+<h3>File Structure</h3>
+<h6>List of directories and code files, along with an explanation of each one's function</h6>
 <ol>
   <li>central</li>
     <ul>
