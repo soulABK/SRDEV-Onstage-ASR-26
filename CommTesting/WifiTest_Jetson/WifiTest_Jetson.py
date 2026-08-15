@@ -1,5 +1,5 @@
 # subfiles
-from Comm import client
+from WifiClient import client
 
 # libraries
 import sys
