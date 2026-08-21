@@ -1,16 +1,19 @@
 # libraries
 import socket
+import time
 
 # objects
-class client:
+class wifiClient:
     def __init__(self, CLIENT_IP, CLIENT_PORT):
         self.ip = CLIENT_IP
         self.port = CLIENT_PORT
 
-    def connect(self, debug = False):
+    def connect(self, timeout, debug = False):
         if debug == True: print(f"Connecting to client at {self.ip} {self.port}...")
         CLIENT_SOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        err = socket.connect_ex((self.ip, self.port))
+        CLIENT_SOCKET.settimeout(timeout)
+
+        err = CLIENT_SOCKET.connect_ex((self.ip, self.port))
         if (err != 0):
             if debug == True: print(f"Failed to connect to client at {self.ip} {self.port}")
             return -1
