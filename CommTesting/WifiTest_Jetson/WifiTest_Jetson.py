@@ -2,8 +2,6 @@
 from WifiComm import wifiClient
 
 # libraries
-import sys
-import os
 import time
 
 CONNECTION_TIMEOUT = 15000 # ms
