@@ -1,5 +1,5 @@
 # subfiles
-from WifiClient import client
+from WifiComm import wifiClient
 
 # libraries
 import sys
@@ -11,31 +11,13 @@ CONNECTION_TIMEOUT = 15000 # ms
 CLIENT_IP = "192.168.0.5"
 CLIENT_PORT = 5000
 
-client(CLIENT_IP, CLIENT_PORT)
+wifiClient(CLIENT_IP, CLIENT_PORT)
 
 if __name__ == "__main__":
-    # setup
-    success = True
-    start = time.perf_counter() * 1000
-    print(f"Connecting to client at {client.ip} {client.port}...")
-    while(client.connect() != 0):
-        current = time.perf_counter() * 1000
-        duration = (current - start)
-
-        if (duration.count() % 1000):
-            print(f"Connecting, Time elapsed: {duration} ms...")
-        if (duration > CONNECTION_TIMEOUT):
-            success = False
-            break
-    if(success == False):
-        print(f"Failed to connect to client at {client.ip} {client.port} due to connection timeout (exceeded {CONNECTION_TIMEOUT} ms)")
+    if (wifiClient.connect(timeout=CONNECTION_TIMEOUT, debug=True) != 0):
+        print(f"Exiting program, failure to connect to client at {wifiClient.ip} {wifiClient.port}")
         exit(1)
 
-    end = time.perf_counter() * 1000
-    duration = (current - start)
-    print(f"Successfully connected to client at {client.ip} {client.port}, total time elapsed: {duration} ms")
-
-    #
     messages = [
         "A", 
         "Hello world!", 
@@ -45,9 +27,12 @@ if __name__ == "__main__":
     for i in range(3):
         print(f"===== Trial {i} =====")
         start = time.perf_counter() * 1000
-        client.write(messages[i], True)
+
+        wifiClient.write(message=messages[i], debug=True)
+
         success = True
-        while (reply := client.read()) is not None:
+
+        while (reply := wifiClient.read()) is not None:
             current = time.perf_counter() * 1000
             duration = (current - start)
             if (duration.count() % 1000):
@@ -55,10 +40,10 @@ if __name__ == "__main__":
             if (duration > CONNECTION_TIMEOUT):
                 success = False
                 break
+
         if(success == False):
             print(f"Failed to receive message due to timeout (exceeded {CONNECTION_TIMEOUT} ms)")
             continue
-    
         end = time.perf_counter() * 1000
         duration = (current - start)
-        print(f"Successfully received message {reply}, total time elapsed: {duration} ms")
+        print(f"Successfully received message {reply}, total time elapsed: {duration} ms\n")
