@@ -1,68 +1,42 @@
 //COMMUNICATION TEST - SEND STRING FROM JETSON TO PICOW VIA BLUETOOTH AND TRACK OVERALL TIME TO SEND AND RECEIVE
+//NOTE: USE SERIAL MONITOR TO TRACK STEP-BY-STEP CONNECTION PROGRESS
+//NOTE: STRINGS SENT TO THE PICOW MUST END IN '\n' CHARACTER 
+//NOTE: IN ARDUINO, UNDER TOOLS, UNDER IP/BLUETOOTH STACK, SELECT "IPv4 + Bluetooth"
+
+//file include
+#include "BTComm.h"
 
 //libraries
 #include <iostream>
-#include <chrono>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <SerialBT.h>
 
-//definitions
-#define CONNECTION_TIMEOUT 15000
-
-//global variables
-String inputBuffer = "";
+BTPeer peer("PicoW Serial");
 
 void setup() {
   //initialize Serial
   Serial.begin(115200);
   delay(2000); 
 
-  //pre-allocate memory for WiFi input buffer
-  inputBuffer.reserve(1024); 
-
   //initialize PicoW LED
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW); //turn off LED
   
-  //initialize Bluetooth with the broadcast name "PicoW_Serial"
-  SerialBT.setName("PicoW_Serial");
-  SerialBT.begin();
-  Serial.printf("Successfully initialized Bluetooth Serial, ready to pair\n");
+  peer.connect(true);
+  
   digitalWrite(LED_BUILTIN, HIGH);
 }
 
-//function: readData
-int readData() {
-  if (SerialBT.available()) {
-    char c = SerialBT.read();
-    inputBuffer += c;
-    if (c == '\n') {
-      return 1; //return 1 if client is connected and line break character is read
-    }
-  }
-  return 0;
-}
-
-//function: writeData
-void writeData(String message) {
-  if (SerialBT.available()) {
-    SerialBT.println(message);
-  }
-}
-
 void loop() {
-  while(1) {
-    int err = 0;
-    while(err == 0) {
-      err = readData();
+  while(peer.status()) {
+    int status = 0;
+    while(status == 0) {
+      status = peer.read();
     }
-    Serial.printf("Successfully read %d bytes of string '%s'", inputBuffer.length(), inputBuffer);  
-    if (strcmp(inputBuffer.c_str(), "stop") == 0)
-      break;
-    writeData(inputBuffer);
-    inputBuffer = "";
+    String reply = peer.showBuffer();
+    Serial.printf("Successfully read %d bytes of string '%s'", reply.length(), reply);  
+    peer.write(reply);
+    peer.clearBuffer();
   }
   exit(0);
 }
