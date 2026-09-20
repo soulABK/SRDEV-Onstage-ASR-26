@@ -47,4 +47,4 @@ extern Motor Motor3;
 // speeds are percent of MAX_RPM; kept as floats so the wheel ratios that
 // determine heading aren't disturbed by integer truncation
 void motor(float speed1, float speed2, float speed3);
-void vmotor(float Vx, float Vy);
+void vmotor(float Vx, float Vy, float rotation);
