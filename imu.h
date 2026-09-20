@@ -10,4 +10,4 @@ extern int rotation;
 extern int zeroRot;
 
 void updateRotation();
-void calibrateRotation();
+bool calibrateRotation();
