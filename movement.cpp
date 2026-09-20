@@ -131,7 +131,7 @@ float degtorad(int degrees) {
 const float radius = 0.346; //ft
 const float ftsToSpeed = 157.65;
 
-const float ROTATION_KP = 0.3;
+const float ROTATION_KP = 0.03;
 
 void vmotor(float Vx, float Vy, float rotation) {
   static float prev_rot;
@@ -144,9 +144,9 @@ void vmotor(float Vx, float Vy, float rotation) {
   float s2 = ftsToSpeed * (-Vx/2 + sqrt(3)*Vy/2);
   float s3 = ftsToSpeed * (Vx);
 
-  s1 += degtorad(rotation) * ROTATION_KP;
-  s2 += degtorad(rotation) * ROTATION_KP;
-  s3 += degtorad(rotation) * ROTATION_KP;
+  s1 -= degtorad(rotation) * ROTATION_KP;
+  s2 -= degtorad(rotation) * ROTATION_KP;
+  s3 -= degtorad(rotation) * ROTATION_KP;
 
   float a1 = fabsf(s1), a2 = fabsf(s2), a3 = fabsf(s3);
   float peak = a1;
@@ -168,3 +168,5 @@ void vmotor(float Vx, float Vy, float rotation) {
   // Serial.println(s3);
   motor(s1, s2, s3);
 }
+
+void rotation_test_motors()
