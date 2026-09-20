@@ -7,7 +7,7 @@
 float vx = 0.0;
 float vy = 0.0;
 
-//#define USE_WIFI
+#define USE_WIFI
 
 #ifdef USE_WIFI
 
@@ -19,21 +19,33 @@ const char* password = "todbot1234";
 
 void setup() {
   Serial.begin(115200);
+  delay(5000);
+
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
   delay(2000);
   digitalWrite(LED_BUILTIN, LOW);
 
-  Wire.setSDA(2);
-  Wire.setSCL(3);
-  Wire.begin();
+  Serial.println("Starting...");
+
+  Wire1.setSDA(2);
+  Wire1.setSCL(3);
+  Wire1.begin();
+
+  Serial.println("Wire initialized. ");
 
   Motor1.init();
   Motor2.init();
   Motor3.init();
 
-  calibrateRotation();
+  Serial.println("Motors initialized. ");
+
+  if (!calibrateRotation()) {
+    Serial.println("IMU failed to initialize.");
+  }
   delay(IMU_CALIB_SAMPLES * IMU_CALIB_DELAY);
+
+  Serial.println("IMU calibrated. ");
 
   #ifdef USE_WIFI
 
@@ -52,6 +64,8 @@ void setup() {
   #endif
 
   motor(0, 0, 0);
+  delay(5000);
+  Serial.println("Ready.");
 
 }
 
@@ -81,7 +95,7 @@ void loop() {
     Serial.println("Connected");
     while (client.connected()) {
       updateRotation();
-      vmotor(vx, vy);
+      vmotor(vx, vy, rotation);
       if (client.available()) {
         char c = client.read();
         if (c == '\n') {
@@ -111,7 +125,7 @@ void loop() {
 
   //motor(25, 25, 25);
   updateRotation();
-  Serial.println(rotation);
+  rotation_test_motors();
   
   #endif
 }
