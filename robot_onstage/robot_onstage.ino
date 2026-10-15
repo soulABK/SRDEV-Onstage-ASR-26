@@ -4,16 +4,22 @@
 #include <WiFi.h>
 #include <Wire.h>
 
+//#define TESTING
+
+#ifndef TESTING
+
 float vx = 0.0;
 float vy = 0.0;
 
-//#define USE_WIFI
+#define USE_WIFI
 
 #ifdef USE_WIFI
 
 WiFiServer server(5000);
 const char* ssid = "StormingKids";
 const char* password = "todbot1234";
+//const char* ssid = "Moon";
+//const char* password = "Chris419";
 
 #endif
 
@@ -28,9 +34,9 @@ void setup() {
 
   Serial.println("Starting...");
 
-  Wire.setSDA(2);
-  Wire.setSCL(3);
-  Wire.begin();
+  Wire1.setSDA(2);
+  Wire1.setSCL(3);
+  Wire1.begin();
 
   Serial.println("Wire initialized. ");
 
@@ -39,17 +45,20 @@ void setup() {
   Motor3.init();
 
   Serial.println("Motor initialized. ");
+
+  delay(1000);
   
   if (!initIMU()) {
-    Serial.println("BNO055 not responding - check wiring and the 0x28/0x29 address.");
-    Serial.println("Continuing WITHOUT heading hold.");
-    for (int i = 0; i < 10; i++) { // visible signal that the IMU didn't come up
+    Serial.println("BNO055 not responding");
+    for (int i = 0; i < 10; i++) { // some signal
       digitalWrite(LED_BUILTIN, HIGH); delay(80);
       digitalWrite(LED_BUILTIN, LOW);  delay(80);
     }
-  }
+  } else {
 
-  Serial.println("IMU initialized. ");
+    Serial.println("IMU initialized. ");
+
+  }
 
   #ifdef USE_WIFI
 
@@ -68,7 +77,7 @@ void setup() {
   #endif
 
   if (!calibrateRotation()) {
-    Serial.println("Heading calibration failed - no usable IMU reading.");
+    Serial.println("Heading calibration failed");
   }
   Serial.println("IMU initialized. ");
   Serial.print("Heading zero set to ");
@@ -102,28 +111,28 @@ void loop() {
   WiFiClient client = server.available();
   if (client) {
     Serial.println("Connected");
+    uint32_t lastControl = 0;
+
     while (client.connected()) {
-      updateRotation();
-      vmotor(vx, vy, rotation, rotationRate);
-      if (client.available()) {
+      while (client.available()) {
         char c = client.read();
         if (c == '\n') {
           if (inputBuffer.indexOf("v") != -1) {
             parseVelocity(inputBuffer);
-            //Serial.println(vx);
-            //Serial.println(vy);
-            inputBuffer = "";
-            // String str = String(vx_act) + ", " + String(vy_act);
-            // client.println(str);
-            // vx_act = 0;
-            // vy_act = 0;
-          } else {
-            inputBuffer = "";
           }
+          inputBuffer = "";
         } else {
           inputBuffer += c;
         }
       }
+    
+      uint32_t now = micros();
+      if (now - lastControl >= CONTROL_PERIOD_US) {
+        lastControl = now;
+        updateRotation();
+        vmotor(vx, vy, rotation, rotationRate);
+      }
+
     }
     motor(0, 0, 0);
   }
@@ -141,3 +150,30 @@ void loop() {
 
   #endif
 }
+
+#else 
+
+void setup() {
+  Serial.begin(115200);
+  delay(5000);
+  Motor1.init();
+  Motor2.init();
+  Motor3.init();
+  Serial.println("Running motor testing...");
+}
+
+void loop() {
+  digitalWrite(Motor1.fpin, LOW);
+  digitalWrite(Motor1.rpin, HIGH);
+  analogWrite(Motor1.ctrl, 75);
+
+  digitalWrite(Motor2.fpin, LOW);
+  digitalWrite(Motor2.rpin, HIGH);
+  analogWrite(Motor2.ctrl, 75);
+
+  digitalWrite(Motor3.fpin, LOW);
+  digitalWrite(Motor3.rpin, HIGH);
+  analogWrite(Motor3.ctrl, 75);
+}
+
+#endif
