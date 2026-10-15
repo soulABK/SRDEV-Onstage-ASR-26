@@ -9,6 +9,14 @@ const float OMNIWHEEL_DIAMETER_MM = 58;
 const int GEAR_RATIO = 120;
 const double PPR = 64.0; // pulses per one rotation of the DC motor
 
+#define USE_VELOCITY_PID
+#define CONTROL_PERIOD_US 10000UL // 100 Hz
+#define MIN_COMMAND 3.0f
+
+#define MOTOR_MAX_PWM 255.0f
+
+#define PWM_STICTION 40.0f // minimum motor control value (0-255); under this the motor basically cannot overcome internal friction i think
+
 //motor init prototypes
 int cmap(int);
 void speed(int);
@@ -26,8 +34,8 @@ struct Motor {
   double last_commanded_rpm = 0.0;
   double currentRPM = 0.0;
   float e_i = 0.0;
-  float output = 0.0;  // last PWM written; persists between the 50ms PID windows
-  int last_dir = 0;    // sign of the last command, so a reversal can reset the integral
+  float output = 0.0;
+  int last_dir = 0;
 
   // Encoder
   long lastPulses = 0;
