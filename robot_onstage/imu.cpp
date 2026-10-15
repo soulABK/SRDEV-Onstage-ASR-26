@@ -1,6 +1,6 @@
 #include "imu.h"
 
-Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
+Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28, &Wire1);
 
 float rotation = 0.0f;
 float rotationRate = 0.0f;
@@ -8,7 +8,7 @@ float zeroRot = 0.0f;
 
 static uint32_t lastSample_us = 0;
 
-#define ROT_RATE_ALPHA 0.2f
+#define ROT_RATE_ALPHA 0.4f
 
 static float wrap180(float deg) {
   while (deg > 180.0f) deg -= 360.0f;
@@ -23,10 +23,14 @@ static float readRawHeading() {
 }
 
 bool initIMU() {
-  // imu plus - gyro/accel no magnetometer
   if (!bno.begin(OPERATION_MODE_IMUPLUS)) {
     return false;
   }
+
+  delay(1000);
+
+  bno.setExtCrystalUse(true);
+  delay(20);
 
   lastSample_us = 0;
   return true;
