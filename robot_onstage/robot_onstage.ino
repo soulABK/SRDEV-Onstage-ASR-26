@@ -10,6 +10,7 @@
 
 float vx = 0.0;
 float vy = 0.0;
+float t = 0.0;
 
 #define USE_WIFI
 
@@ -92,19 +93,25 @@ bool started = false;
 void parseVelocity(String data) {
   int xpos = data.indexOf("x");
   int ypos = data.indexOf("y");
-  if (xpos == -1 || ypos == -1) return;
+  int time = data.indexOf("t");
+  if (xpos == -1 || ypos == -1 || time == -1) return;
 
   String vxStr = data.substring(data.indexOf("x:") + 3, ypos-3);
-  String vyStr = data.substring(data.indexOf("y:") + 3, data.length());
+  String vyStr = data.substring(data.indexOf("y:") + 3, time-3);
+  String timeStr = data.substring(data.indexOf("t:"), +3, data.length());
 
   vxStr.trim();
   vyStr.trim();
+  timeStr.trim();
 
   vx = vxStr.toFloat();
   vy = vyStr.toFloat();
+  t = timeStr.toFloat();
 }
 
 String inputBuffer = "";
+
+bool dataUpdated = false;
 
 void loop() {
   #ifdef USE_WIFI
@@ -115,6 +122,7 @@ void loop() {
 
     while (client.connected()) {
       while (client.available()) {
+        dataUpdated = true;
         char c = client.read();
         if (c == '\n') {
           if (inputBuffer.indexOf("v") != -1) {
@@ -128,9 +136,15 @@ void loop() {
     
       uint32_t now = micros();
       if (now - lastControl >= CONTROL_PERIOD_US) {
-        lastControl = now;
-        updateRotation();
-        vmotor(vx, vy, rotation, rotationRate);
+        if (now - lastControl >= t) {
+          lastControl = now;
+          updateRotation();
+          vmotor(0, 0, rotation, rotationRate);
+        } else if (dataUpdated) {
+          lastControl = now;
+          updateRotation();
+          vmotor(vx, vy, rotation, rotationRate);
+        }
       }
 
     }
@@ -177,3 +191,17 @@ void loop() {
 }
 
 #endif
+
+
+// void setup() {
+//   Serial.begin(115200);
+//   delay(5000);
+//   Serial.println("Begin...");
+//   pinMode(LED_BUILTIN, OUTPUT);
+//   digitalWrite(LED_BUILTIN, HIGH);
+// }
+
+// void loop() {
+//   Serial.println("Test.");
+//   delay(2000);
+// }
